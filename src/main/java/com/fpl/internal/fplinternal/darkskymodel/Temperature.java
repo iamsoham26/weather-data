@@ -4,8 +4,7 @@ import java.text.DecimalFormat;
 
 public class Temperature {
 
-	private Double lat;
-	private Double lng;
+	private Integer zipcode;
 	private Double avgTemp;
 	private Double minTemp;
 	private Double maxTemp;
@@ -473,25 +472,17 @@ public class Temperature {
 		this.humidity24 = humidity24;
 	}
 
-	public Double getLat() {
-		return lat;
+	public Integer getZipcode() {
+		return zipcode;
 	}
 
-	public void setLat(Double lat) {
-		this.lat = lat;
-	}
-
-	public Double getLng() {
-		return lng;
-	}
-
-	public void setLng(Double lng) {
-		this.lng = lng;
+	public void setZipcode(Integer zipcode) {
+		this.zipcode = zipcode;
 	}
 
 	@Override
 	public String toString() {
-		return "Temperature [lat=" + lat + ", lng=" + lng + ", avgTemp=" + avgTemp + ", minTemp=" + minTemp
+		return "Temperature [zipcode=" + zipcode + ", avgTemp=" + avgTemp + ", minTemp=" + minTemp
 				+ ", maxTemp=" + maxTemp + ", hour1=" + hour1 + ", hour2=" + hour2 + ", hour3=" + hour3 + ", hour4="
 				+ hour4 + ", hour5=" + hour5 + ", hour6=" + hour6 + ", hour7=" + hour7 + ", hour8=" + hour8 + ", hour9="
 				+ hour9 + ", hour10=" + hour10 + ", hour11=" + hour11 + ", hour12=" + hour12 + ", hour13=" + hour13
