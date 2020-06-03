@@ -1,7 +1,12 @@
 package com.fpl.internal.fplinternal.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fpl.internal.fplinternal.darkskymodel.DarkSkydata;
 import com.fpl.internal.fplinternal.darkskymodel.Temperature;
 import com.fpl.internal.fplinternal.darkskymodel.ZipLatLng;
+import com.fpl.internal.fplinternal.locationmodel.FplZipcodes;
 import com.fpl.internal.fplinternal.locationmodel.GoogleMaps;
 
 @RestController
@@ -23,6 +29,7 @@ public class FplInternalController {
 
 	private static final String GOOGLE_KEY = "AIzaSyACfeooPuBSvXvTp2zJUdzicPKvjjSH19Q";
 	private static final String DARKSKY_API_KEY = "4bfa92bdad3663bbd903597cb5c83ddd";
+	private static final Logger LOG = LoggerFactory.getLogger(FplInternalController.class);
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -34,9 +41,9 @@ public class FplInternalController {
 		GoogleMaps latlng = new GoogleMaps();
 
 		latlng = restTemplate.getForObject(
-				"https://maps.googleapis.com/maps/api/geocode/json?address={zipcode}&key={key}", GoogleMaps.class, zipcode,
-				GOOGLE_KEY);
-		
+				"https://maps.googleapis.com/maps/api/geocode/json?address={zipcode}&key={key}", GoogleMaps.class,
+				zipcode, GOOGLE_KEY);
+
 		String lat = latlng.getResults().get(0).getGeometry().getLocation().getLat();
 		String lng = latlng.getResults().get(0).getGeometry().getLocation().getLng();
 
@@ -104,20 +111,48 @@ public class FplInternalController {
 		return new ResponseEntity<Temperature>(tmp, HttpStatus.OK);
 
 	}
-	
+
 	@GetMapping(value = "/getlatlng/{zipcode}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<ZipLatLng> getZipLatLng(GoogleMaps data, @PathVariable Integer zipcode){
-		
+	public ResponseEntity<ZipLatLng> getZipLatLng(GoogleMaps data, @PathVariable Integer zipcode) {
+
 		data = restTemplate.getForObject(
-				"https://maps.googleapis.com/maps/api/geocode/json?address={zipcode}&key={key}", GoogleMaps.class, zipcode,
-				GOOGLE_KEY);
-		
+				"https://maps.googleapis.com/maps/api/geocode/json?address={zipcode}&key={key}", GoogleMaps.class,
+				zipcode, GOOGLE_KEY);
+
 		ZipLatLng ziplatlng = new ZipLatLng();
 		ziplatlng.setZipcode(zipcode);
 		ziplatlng.setLat(data.getResults().get(0).getGeometry().getLocation().getLat());
 		ziplatlng.setLng(data.getResults().get(0).getGeometry().getLocation().getLng());
-	
+
 		return new ResponseEntity<ZipLatLng>(ziplatlng, HttpStatus.OK);
+	}
+
+	@GetMapping(value = "/getlatlng", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public ResponseEntity<List<ZipLatLng>> getZipLatLng(GoogleMaps data) {
+
+		List<ZipLatLng> dt = new ArrayList<ZipLatLng>();
+		FplZipcodes zipcodes = new FplZipcodes();
+
+		zipcodes = restTemplate.getForObject("https://www.fpl.com/api/public/zip", FplZipcodes.class);
+
+		Iterator<Integer> itr = zipcodes.getData().iterator();
+		int i = -1;
+		
+		while (itr.hasNext()) {
+			i++;
+			data = restTemplate.getForObject(
+					"https://maps.googleapis.com/maps/api/geocode/json?address={zipcode}&key={key}", GoogleMaps.class,
+					zipcodes.getData().get(i), GOOGLE_KEY);
+
+			ZipLatLng ziplatlng = new ZipLatLng();
+			ziplatlng.setZipcode(zipcodes.getData().get(i));
+			ziplatlng.setLat(data.getResults().get(0).getGeometry().getLocation().getLat());
+			ziplatlng.setLng(data.getResults().get(0).getGeometry().getLocation().getLng());
+			
+			LOG.info(i +" : "+ ziplatlng.toString());
+			dt.add(ziplatlng);
+		}
+		return new ResponseEntity<List<ZipLatLng>>(dt, HttpStatus.OK);
 	}
 
 }
